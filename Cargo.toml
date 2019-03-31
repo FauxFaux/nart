@@ -1,0 +1,24 @@
+[package]
+name = "nart"
+version = "0.1.0"
+authors = ["Chris West (Faux) <git@goeswhere.com>"]
+edition = "2018"
+
+[dependencies]
+
+[dependencies.failure]
+default-features = false
+features = ["std"]
+version = "0.1"
+
+[dependencies.minifb]
+git = "https://github.com/FauxFaux/rust_minifb"
+# master + https://github.com/emoon/rust_minifb/pull/72
+rev = "98530d61b01b368eb2a5e25d42896c824e998962"
+
+[dependencies.png]
+# avoiding encoder
+default-features = false
+# 0.14 breaks default-features = false:
+# https://github.com/PistonDevelopers/image-png/issues/107
+version = "0.13"
