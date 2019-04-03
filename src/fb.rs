@@ -1,3 +1,4 @@
+use crate::img::RgbaImage;
 use failure::Error;
 use minifb::Window;
 use minifb::WindowOptions;
@@ -47,4 +48,36 @@ impl<'b> AsMut<[u32]> for Buffer<'b> {
     fn as_mut(&mut self) -> &mut [u32] {
         self.inner
     }
+}
+
+impl<'b> Buffer<'b> {
+    pub fn get_mut(&mut self, (x, y): (usize, usize)) -> &mut u32 {
+        &mut self.inner[y * self.width + x]
+    }
+
+    pub fn set(&mut self, (x, y): (usize, usize), new: u32) {
+        *self.get_mut((x, y)) = new;
+    }
+
+    pub fn image_ignore_alpha(&mut self, image: &RgbaImage, (left, top): (usize, usize)) {
+        for y in 0..image.height {
+            for x in 0..image.width {
+                let mg = image.get((x, y));
+                let (r, g, b, a) = rgba(mg);
+                if a > 0 {
+                    self.set((x + left, y + top), mg);
+                }
+            }
+        }
+    }
+}
+
+#[inline]
+fn rgba(pixel: u32) -> (u8, u8, u8, u8) {
+    (
+        (pixel >> 0) as u8,
+        (pixel >> 8) as u8,
+        (pixel >> 16) as u8,
+        (pixel >> 24) as u8,
+    )
 }

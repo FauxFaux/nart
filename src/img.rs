@@ -7,9 +7,17 @@ use failure::err_msg;
 use failure::Error;
 
 pub struct RgbaImage {
-    width: u64,
-    height: u64,
+    pub width: usize,
+    pub height: usize,
     data: Vec<u32>,
+}
+
+impl RgbaImage {
+    pub fn get(&self, (x, y): (usize, usize)) -> u32 {
+        assert_lt!(x, self.width);
+        assert_lt!(y, self.height);
+        self.data[y * self.width + x]
+    }
 }
 
 pub fn load_png(png: &[u8]) -> Result<RgbaImage, Error> {
@@ -44,8 +52,8 @@ pub fn load_png(png: &[u8]) -> Result<RgbaImage, Error> {
 
     Ok(RgbaImage {
         data: bytes_to_rgba(bytes),
-        width: u64(output.width),
-        height: u64(output.height),
+        width: usize(output.width),
+        height: usize(output.height),
     })
 }
 
@@ -53,7 +61,7 @@ fn bytes_to_rgba(bytes: Vec<u8>) -> Vec<u32> {
     use byteorder::ByteOrder;
     // I really have no idea how endian works here
     bytes
-        .windows(4)
+        .chunks(4)
         .map(|v| byteorder::NativeEndian::read_u32(v))
         .collect()
 }
