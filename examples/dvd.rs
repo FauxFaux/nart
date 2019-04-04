@@ -26,7 +26,7 @@ fn main() -> Result<(), Error> {
             *i = (noise << 16) | (noise << 8) | noise;
         }
 
-        buffer.image_ignore_alpha(&image, (10, 10));
+        buffer.image_one_minus_src(&image, (10, 10));
 
         nart.update()?;
     }
