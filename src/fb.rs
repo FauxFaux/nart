@@ -4,6 +4,7 @@ use minifb::Window;
 use minifb::WindowOptions;
 
 use crate::img::RgbaImage;
+use crate::rgba::RgbaVec;
 
 pub struct Nart {
     pub win: Window,
@@ -64,47 +65,13 @@ impl<'b> Buffer<'b> {
     pub fn image_one_minus_src(&mut self, image: &RgbaImage, (left, top): (usize, usize)) {
         for y in 0..image.height {
             for x in 0..image.width {
-                let src = image.get((x, y));
-                let (sr, sg, sb, sa) = rgba(src);
-                if sa == 0 {
-                    continue;
-                }
+                let src = RgbaVec::from_packed(image.get((x, y)));
 
                 let dest = self.get_mut((x + left, y + top));
-                let (dr, dg, db, da) = rgba(*dest);
 
-                let or = sr + one_minus_a(sa, dr);
-                let og = sg + one_minus_a(sa, dg);
-                let ob = sb + one_minus_a(sa, db);
-
-                *dest = pack(or, og, ob, da);
+                let dst = RgbaVec::from_packed(*dest);
+                *dest = dst.blend_one_minus_src(&src).to_packed();
             }
         }
     }
-}
-
-#[inline]
-fn one_minus_a(a: u8, c: u8) -> u8 {
-    ((1. - (a as f32) / 256.) * (c as f32)) as u8
-}
-
-#[inline]
-fn rgba(pixel: u32) -> (u8, u8, u8, u8) {
-    (
-        (pixel >> 0) as u8,
-        (pixel >> 8) as u8,
-        (pixel >> 16) as u8,
-        (pixel >> 24) as u8,
-    )
-}
-
-#[inline]
-fn pack(r: u8, g: u8, b: u8, a: u8) -> u32 {
-    (u32(r) << 0) + (u32(g) << 8) + (u32(b) << 16) + (u32(a) << 24)
-}
-
-#[test]
-fn colour() {
-    assert_eq!((1, 2, 3, 4), rgba(pack(1, 2, 3, 4)));
-    assert_eq!(32, one_minus_a(128, 64));
 }
