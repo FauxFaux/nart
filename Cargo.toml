@@ -15,13 +15,12 @@ features = ["std"]
 version = "0.1"
 
 [dependencies.minifb]
-git = "https://github.com/FauxFaux/rust_minifb"
-# master + https://github.com/emoon/rust_minifb/pull/72
-rev = "98530d61b01b368eb2a5e25d42896c824e998962"
+git = "https://github.com/emoon/rust_minifb"
+# master
+rev = "2b8094cc6ce7fefeb322a8b4df09e0c978efd5e2"
 
 [dependencies.png]
 # avoiding encoder
 default-features = false
-# 0.14 breaks default-features = false:
-# https://github.com/PistonDevelopers/image-png/issues/107
+# 0.14 breaks default-features = false, fixed when 0.14.1 gets released
 version = "0.13"
