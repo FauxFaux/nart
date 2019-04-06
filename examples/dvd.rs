@@ -1,6 +1,7 @@
 use failure::Error;
 use minifb::Key;
 use nart::fb::Nart;
+use nart::fb::NartOptions;
 use nart::rgba::RgbaVec;
 use rand_core::RngCore;
 use rand_core::SeedableRng;
@@ -8,7 +9,13 @@ use rand_core::SeedableRng;
 fn main() -> Result<(), Error> {
     let image = nart::img::load_png(include_bytes!("dvd.png"))?;
 
-    let mut nart = Nart::new("dvd", 640, 480, true)?;
+    let mut nart = Nart::new(&NartOptions {
+        name: "dvd".to_string(),
+        width: 640,
+        height: 480,
+        resize: true,
+        ..Default::default()
+    })?;
 
     let mut rng = ByteRand::new();
 

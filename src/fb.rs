@@ -6,6 +6,14 @@ use minifb::WindowOptions;
 use crate::img::RgbaImage;
 use crate::rgba::RgbaVec;
 
+#[derive(Clone)]
+pub struct NartOptions {
+    pub name: String,
+    pub width: usize,
+    pub height: usize,
+    pub resize: bool,
+}
+
 pub struct Nart {
     pub win: Window,
     buffer: Vec<u32>,
@@ -19,11 +27,16 @@ pub struct Buffer<'b> {
 }
 
 impl Nart {
-    pub fn new(name: &str, width: usize, height: usize, resize: bool) -> Result<Nart, Error> {
+    pub fn new(options: &NartOptions) -> Result<Nart, Error> {
         Ok(Nart {
-            win: Window::new(name, width, height, WindowOptions::default())?,
-            buffer: vec![0; width * height],
-            last_size: (width, height),
+            win: Window::new(
+                &options.name,
+                options.width,
+                options.height,
+                WindowOptions::default(),
+            )?,
+            buffer: vec![0; options.width * options.height],
+            last_size: (options.width, options.height),
         })
     }
 
@@ -72,6 +85,17 @@ impl<'b> Buffer<'b> {
                 let dst = RgbaVec::from_packed(*dest);
                 *dest = dst.blend_one_minus_src(&src).to_packed();
             }
+        }
+    }
+}
+
+impl Default for NartOptions {
+    fn default() -> Self {
+        NartOptions {
+            name: "nart".to_string(),
+            width: 640,
+            height: 480,
+            resize: false,
         }
     }
 }
