@@ -16,7 +16,7 @@ fn main() -> Result<(), Error> {
         let mut buffer = nart.buffer();
 
         for cell in buffer.as_mut() {
-            let mut rand = rng.next();
+            let rand = rng.next();
             *cell = RgbaVec {
                 r: rand,
                 g: rand,
