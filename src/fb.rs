@@ -1,3 +1,6 @@
+use std::thread;
+use std::time;
+
 use cast::u32;
 use failure::Error;
 use minifb::Window;
@@ -12,12 +15,15 @@ pub struct NartOptions {
     pub width: usize,
     pub height: usize,
     pub resize: bool,
+    pub frame_cap: usize,
 }
 
 pub struct Nart {
     pub win: Window,
     buffer: Vec<u32>,
     last_size: (usize, usize),
+    last_frame: time::Instant,
+    frame_ms: u32,
 }
 
 pub struct Buffer<'b> {
@@ -37,6 +43,8 @@ impl Nart {
             )?,
             buffer: vec![0; options.width * options.height],
             last_size: (options.width, options.height),
+            last_frame: time::Instant::now(),
+            frame_ms: u32(1000 / options.frame_cap).expect("max 1000"),
         })
     }
 
@@ -52,6 +60,22 @@ impl Nart {
             height: self.last_size.1,
             inner: &mut self.buffer,
         }
+    }
+
+    pub fn frame(&mut self) -> Result<(), Error> {
+        let now = time::Instant::now();
+        let frame_time = now.duration_since(self.last_frame);
+        if 0 == frame_time.as_secs() {
+            let elapsed = frame_time.subsec_millis();
+            if elapsed < self.frame_ms {
+                thread::sleep(time::Duration::from_millis(u64::from(
+                    self.frame_ms - elapsed,
+                )));
+            }
+        }
+        self.win.update_with_buffer(&self.buffer)?;
+        self.last_frame = time::Instant::now();
+        Ok(())
     }
 
     pub fn update(&mut self) -> Result<(), Error> {
@@ -96,6 +120,7 @@ impl Default for NartOptions {
             width: 640,
             height: 480,
             resize: false,
+            frame_cap: 60,
         }
     }
 }

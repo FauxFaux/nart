@@ -11,9 +11,8 @@ fn main() -> Result<(), Error> {
 
     let mut nart = Nart::new(&NartOptions {
         name: "dvd".to_string(),
-        width: 640,
-        height: 480,
         resize: true,
+        frame_cap: 60,
         ..Default::default()
     })?;
 
@@ -35,7 +34,7 @@ fn main() -> Result<(), Error> {
 
         buffer.image_one_minus_src(&image, (10, 10));
 
-        nart.update()?;
+        nart.frame()?;
     }
 
     Ok(())
