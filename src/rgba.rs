@@ -1,33 +1,53 @@
 use cast::u32;
 
-pub struct RgbaVec {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-    pub a: u8,
-}
+#[repr(transparent)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Rgba(u32);
 
-impl RgbaVec {
-    pub fn from_packed(packed: u32) -> RgbaVec {
-        RgbaVec {
-            r: (packed >> 0) as u8,
-            g: (packed >> 8) as u8,
-            b: (packed >> 16) as u8,
-            a: (packed >> 24) as u8,
-        }
+impl Rgba {
+    pub fn from_u8s(r: u8, g: u8, b: u8, a: u8) -> Rgba {
+        Rgba((u32(r) << 0) + (u32(g) << 8) + (u32(b) << 16) + (u32(a) << 24))
     }
 
-    pub fn to_packed(&self) -> u32 {
-        (u32(self.r) << 0) + (u32(self.g) << 8) + (u32(self.b) << 16) + (u32(self.a) << 24)
+    pub fn from_packed(val: u32) -> Rgba {
+        Rgba(val)
     }
 
-    pub fn blend_one_minus_src(&self, src: &RgbaVec) -> RgbaVec {
-        RgbaVec {
-            r: src.r + one_minus_a(src.a, self.r),
-            g: src.g + one_minus_a(src.a, self.g),
-            b: src.b + one_minus_a(src.a, self.b),
-            a: self.a,
-        }
+    pub fn grey(luma: u8, alpha: u8) -> Rgba {
+        Rgba::from_u8s(luma, luma, luma, alpha)
+    }
+
+    pub fn black() -> Rgba {
+        Rgba::from_u8s(0, 0, 0, 255)
+    }
+
+    pub fn packed(&self) -> u32 {
+        self.0
+    }
+
+    pub fn r(&self) -> u8 {
+        (self.0 >> 0) as u8
+    }
+
+    pub fn g(&self) -> u8 {
+        (self.0 >> 8) as u8
+    }
+
+    pub fn b(&self) -> u8 {
+        (self.0 >> 16) as u8
+    }
+
+    pub fn a(&self) -> u8 {
+        (self.0 >> 24) as u8
+    }
+
+    pub fn blend_one_minus_src(&self, src: &Rgba) -> Rgba {
+        Rgba::from_u8s(
+            src.r() + one_minus_a(src.a(), self.r()),
+            src.g() + one_minus_a(src.a(), self.g()),
+            src.b() + one_minus_a(src.a(), self.b()),
+            self.a(),
+        )
     }
 }
 

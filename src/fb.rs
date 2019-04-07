@@ -1,3 +1,5 @@
+use std::mem;
+use std::slice;
 use std::thread;
 use std::time;
 
@@ -8,7 +10,8 @@ use minifb::Window;
 use minifb::WindowOptions;
 
 use crate::img::RgbaImage;
-use crate::rgba::RgbaVec;
+use crate::rgba::Rgba;
+use std::intrinsics::transmute;
 
 #[derive(Clone)]
 pub struct NartOptions {
@@ -21,14 +24,14 @@ pub struct NartOptions {
 
 pub struct Nart {
     pub win: Window,
-    buffer: Vec<u32>,
+    buffer: Vec<Rgba>,
     last_size: (usize, usize),
     last_frame: time::Instant,
     frame_ms: u32,
 }
 
 pub struct Buffer<'b> {
-    inner: &'b mut [u32],
+    inner: &'b mut [Rgba],
     width: usize,
     height: usize,
 }
@@ -42,7 +45,7 @@ impl Nart {
                 options.height,
                 WindowOptions::default(),
             )?,
-            buffer: vec![0; options.width * options.height],
+            buffer: vec![Rgba::black(); options.width * options.height],
             last_size: (options.width, options.height),
             last_frame: time::Instant::now(),
             frame_ms: u32(1000 / options.frame_cap).expect("max 1000"),
@@ -53,7 +56,7 @@ impl Nart {
         let new_size = self.win.get_size();
         if new_size != self.last_size {
             self.last_size = new_size;
-            self.buffer.resize(new_size.0 * new_size.1, 0);
+            self.buffer.resize(new_size.0 * new_size.1, Rgba::black());
         }
 
         Buffer {
@@ -74,41 +77,50 @@ impl Nart {
                 )));
             }
         }
-        self.win.update_with_buffer(&self.buffer)?;
+        self.update_now()?;
         self.last_frame = time::Instant::now();
         Ok(())
     }
 
-    pub fn update(&mut self) -> Result<(), Error> {
-        self.win.update_with_buffer(&self.buffer)?;
+    pub fn update_now(&mut self) -> Result<(), Error> {
+        let rgbas: &[Rgba] = self.buffer.as_slice();
+        assert_eq!(mem::size_of::<Rgba>(), mem::size_of::<u32>());
+        let u32s: &[u32] = unsafe {
+            // safe as Rgba is #[repr(transpartent)]. Not actually FFI, so
+            // probably safe even with #[repr(C)], and currently works even
+            // with default repr (as there is no overhead)
+            let u32s = rgbas.as_ptr() as *const u32;
+            ::std::slice::from_raw_parts(u32s, rgbas.len())
+        };
+        self.win.update_with_buffer(u32s)?;
         Ok(())
     }
 }
 
-impl<'b> AsMut<[u32]> for Buffer<'b> {
-    fn as_mut(&mut self) -> &mut [u32] {
+impl<'b> AsMut<[Rgba]> for Buffer<'b> {
+    fn as_mut(&mut self) -> &mut [Rgba] {
         self.inner
     }
 }
 
 impl<'b> Buffer<'b> {
-    pub fn get_mut(&mut self, (x, y): (usize, usize)) -> &mut u32 {
+    pub fn get_mut(&mut self, (x, y): (usize, usize)) -> &mut Rgba {
         &mut self.inner[y * self.width + x]
     }
 
-    pub fn set(&mut self, (x, y): (usize, usize), new: u32) {
+    pub fn set(&mut self, (x, y): (usize, usize), new: Rgba) {
         *self.get_mut((x, y)) = new;
     }
 
     pub fn image_one_minus_src(&mut self, image: &RgbaImage, (left, top): (usize, usize)) {
         for y in 0..image.height {
             for x in 0..image.width {
-                let src = RgbaVec::from_packed(image.get((x, y)));
+                let src = image.get((x, y));
 
                 let dest = self.get_mut((x + left, y + top));
 
-                let dst = RgbaVec::from_packed(*dest);
-                *dest = dst.blend_one_minus_src(&src).to_packed();
+                let dst = *dest;
+                *dest = dst.blend_one_minus_src(&src);
             }
         }
     }
@@ -131,16 +143,7 @@ impl<'b> Buffer<'b> {
                 let x = left + usize(bb.min.x).expect("TODO?") + usize(x);
                 let y = top + usize(bb.min.y).expect("TODO?") + usize(y);
                 let v = (v * 255.).floor() as u8;
-                self.set(
-                    (x, y),
-                    RgbaVec {
-                        r: 0,
-                        g: 0,
-                        b: 0,
-                        a: 255,
-                    }
-                    .to_packed(),
-                );
+                self.set((x, y), Rgba::black());
             });
         }
 

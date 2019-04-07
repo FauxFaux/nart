@@ -6,14 +6,16 @@ use failure::ensure;
 use failure::err_msg;
 use failure::Error;
 
+use crate::rgba::Rgba;
+
 pub struct RgbaImage {
     pub width: usize,
     pub height: usize,
-    data: Vec<u32>,
+    data: Vec<Rgba>,
 }
 
 impl RgbaImage {
-    pub fn get(&self, (x, y): (usize, usize)) -> u32 {
+    pub fn get(&self, (x, y): (usize, usize)) -> Rgba {
         assert_lt!(x, self.width);
         assert_lt!(y, self.height);
         self.data[y * self.width + x]
@@ -57,11 +59,11 @@ pub fn load_png(png: &[u8]) -> Result<RgbaImage, Error> {
     })
 }
 
-fn bytes_to_rgba(bytes: Vec<u8>) -> Vec<u32> {
+fn bytes_to_rgba(bytes: Vec<u8>) -> Vec<Rgba> {
     use byteorder::ByteOrder;
     // I really have no idea how endian works here
     bytes
         .chunks(4)
-        .map(|v| byteorder::NativeEndian::read_u32(v))
+        .map(|v| Rgba::from_packed(byteorder::NativeEndian::read_u32(v)))
         .collect()
 }

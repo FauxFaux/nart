@@ -1,6 +1,4 @@
-use failure::Error;
 use rusttype::point;
-use rusttype::Point;
 use rusttype::PositionedGlyph;
 use rusttype::Scale;
 

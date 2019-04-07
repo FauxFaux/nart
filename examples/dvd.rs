@@ -3,7 +3,7 @@ use failure::Error;
 use minifb::Key;
 use nart::fb::Nart;
 use nart::fb::NartOptions;
-use nart::rgba::RgbaVec;
+use nart::rgba::Rgba;
 use rand_core::RngCore;
 use rand_core::SeedableRng;
 
@@ -28,13 +28,7 @@ fn main() -> Result<(), Error> {
 
         for cell in buffer.as_mut() {
             let rand = rng.next();
-            *cell = RgbaVec {
-                r: rand,
-                g: rand,
-                b: rand,
-                a: 255,
-            }
-            .to_packed();
+            *cell = Rgba::grey(rand, 255);
         }
 
         let x = usize(rng.next_u32()) % (width - image.width);
