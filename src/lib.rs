@@ -4,3 +4,4 @@ extern crate more_asserts;
 pub mod fb;
 pub mod img;
 pub mod rgba;
+pub mod text;

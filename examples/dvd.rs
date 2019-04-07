@@ -1,3 +1,4 @@
+use cast::usize;
 use failure::Error;
 use minifb::Key;
 use nart::fb::Nart;
@@ -17,8 +18,12 @@ fn main() -> Result<(), Error> {
     })?;
 
     let mut rng = ByteRand::new();
+    let font = nart::text::Font::sans_noto();
+    let text = font.layout("DIGITALLY VERIFIABLE DISC", 32.);
 
     while nart.win.is_open() && !nart.win.is_key_down(Key::Escape) {
+        let (width, height) = nart.win.get_size();
+
         let mut buffer = nart.buffer();
 
         for cell in buffer.as_mut() {
@@ -32,7 +37,15 @@ fn main() -> Result<(), Error> {
             .to_packed();
         }
 
-        buffer.image_one_minus_src(&image, (10, 10));
+        let x = usize(rng.next_u32()) % (width - image.width);
+        let y = usize(rng.next_u32()) % (height - image.height);
+
+        buffer.image_one_minus_src(&image, (usize(x), usize(y)));
+
+        let x = usize(rng.next_u32()) % (width - usize(text.width().ceil())?);
+        let y = usize(rng.next_u32()) % (height - 32);
+
+        buffer.draw_text(&text, (x, y))?;
 
         nart.frame()?;
     }
@@ -65,5 +78,9 @@ impl ByteRand {
         self.curr >>= 8;
         self.bip += 1;
         ret
+    }
+
+    fn next_u32(&mut self) -> u32 {
+        self.rng.next_u32()
     }
 }

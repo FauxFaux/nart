@@ -2,6 +2,7 @@ use std::thread;
 use std::time;
 
 use cast::u32;
+use cast::usize;
 use failure::Error;
 use minifb::Window;
 use minifb::WindowOptions;
@@ -110,6 +111,40 @@ impl<'b> Buffer<'b> {
                 *dest = dst.blend_one_minus_src(&src).to_packed();
             }
         }
+    }
+
+    pub fn draw_text(
+        &mut self,
+        text: &crate::text::Layout,
+        (left, top): (usize, usize),
+    ) -> Result<(), Error> {
+        for g in &text.glyphs {
+            let bb = match g.pixel_bounding_box() {
+                Some(bb) => bb,
+                None => continue,
+            };
+
+            g.draw(|x, y, v| {
+                if v < 0.05 {
+                    return;
+                }
+                let x = left + usize(bb.min.x).expect("TODO?") + usize(x);
+                let y = top + usize(bb.min.y).expect("TODO?") + usize(y);
+                let v = (v * 255.).floor() as u8;
+                self.set(
+                    (x, y),
+                    RgbaVec {
+                        r: 0,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    }
+                    .to_packed(),
+                );
+            });
+        }
+
+        Ok(())
     }
 }
 

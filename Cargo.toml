@@ -8,6 +8,7 @@ edition = "2018"
 byteorder = "1"
 cast = "0.2"
 more-asserts = "0.2"
+rusttype = "0.7.5"
 
 [dependencies.failure]
 default-features = false
