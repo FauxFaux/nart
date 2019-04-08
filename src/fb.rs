@@ -105,6 +105,8 @@ impl<'b> AsMut<[Rgba]> for Buffer<'b> {
 
 impl<'b> Buffer<'b> {
     pub fn get_mut(&mut self, (x, y): (usize, usize)) -> &mut Rgba {
+        assert_lt!(x, self.width);
+        assert_lt!(y, self.height);
         &mut self.inner[y * self.width + x]
     }
 
@@ -122,6 +124,20 @@ impl<'b> Buffer<'b> {
                 let dst = *dest;
                 *dest = dst.blend_one_minus_src(&src);
             }
+        }
+    }
+
+    pub fn draw_line(&mut self, (x1, y1): (usize, usize), (x2, y2): (usize, usize)) {
+        use line_drawing::XiaolinWu as Alg;
+        let draw: Alg<f32, isize> = Alg::new((x1 as f32, y1 as f32), (x2 as f32, y2 as f32));
+        for ((x, y), value) in draw {
+            let x = usize(x).unwrap();
+            let y = usize(y).unwrap();
+            if x >= self.width || y >= self.height {
+                // TODO: https://github.com/expenses/line_drawing/issues/8
+                continue;
+            }
+            self.set((x, y), Rgba::grey(0, (value * 255.) as u8));
         }
     }
 
@@ -161,4 +177,32 @@ impl Default for NartOptions {
             frame_cap: 60,
         }
     }
+}
+
+#[test]
+fn line() {
+    let wu: line_drawing::XiaolinWu<f32, isize> =
+        line_drawing::XiaolinWu::new((238., 432.), (123., 432.));
+    for ((x, y), _) in wu {
+        assert!(x < 250, "{:?}", (x, y));
+        assert!(y < 450, "{:?}", (x, y));
+    }
+}
+
+#[test]
+fn line2() {
+    let wu: line_drawing::XiaolinWu<f32, isize> =
+        line_drawing::XiaolinWu::new((1., 10.), (7., 10.));
+    assert_eq!(
+        vec![
+            (1, 10),
+            (2, 11),
+            (3, 12),
+            (4, 13),
+            (5, 14),
+            (6, 15),
+            (7, 16),
+        ],
+        wu.into_iter().map(|(pt, _)| pt).collect::<Vec<_>>()
+    );
 }

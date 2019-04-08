@@ -31,15 +31,25 @@ fn main() -> Result<(), Error> {
             *cell = Rgba::grey(rand, 255);
         }
 
-        let x = usize(rng.next_u32()) % (width - image.width);
-        let y = usize(rng.next_u32()) % (height - image.height);
+        for _ in 0..10 {
+            let x = usize(rng.next_u32()) % (width - image.width);
+            let y = usize(rng.next_u32()) % (height - image.height);
 
-        buffer.image_one_minus_src(&image, (usize(x), usize(y)));
+            buffer.image_one_minus_src(&image, (usize(x), usize(y)));
 
-        let x = usize(rng.next_u32()) % (width - usize(text.width().ceil())?);
-        let y = usize(rng.next_u32()) % (height - 32);
+            let x = usize(rng.next_u32()) % (width - usize(text.width().ceil())?);
+            let y = usize(rng.next_u32()) % (height - 32);
 
-        buffer.draw_text(&text, (x, y))?;
+            buffer.draw_text(&text, (x, y))?;
+
+            let x1 = usize(rng.next_u32()) % (width - 5);
+            let y1 = usize(rng.next_u32()) % (height - 5);
+
+            let x2 = usize(rng.next_u32()) % (width - 5);
+            let y2 = usize(rng.next_u32()) % (height - 5);
+
+            buffer.draw_line((x1, y1), (x2, y2));
+        }
 
         nart.frame()?;
     }

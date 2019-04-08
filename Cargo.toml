@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 byteorder = "1"
 cast = "0.2"
+line_drawing = "0.7"
 more-asserts = "0.2"
 rusttype = "0.7.5"
 
