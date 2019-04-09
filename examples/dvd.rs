@@ -42,11 +42,11 @@ fn main() -> Result<(), Error> {
 
             buffer.draw_text(&text, (x, y))?;
 
-            let x1 = usize(rng.next_u32()) % (width - 5);
-            let y1 = usize(rng.next_u32()) % (height - 5);
+            let x1 = usize(rng.next_u32()) % width;
+            let y1 = usize(rng.next_u32()) % height;
 
-            let x2 = usize(rng.next_u32()) % (width - 5);
-            let y2 = usize(rng.next_u32()) % (height - 5);
+            let x2 = usize(rng.next_u32()) % width;
+            let y2 = usize(rng.next_u32()) % height;
 
             buffer.draw_line((x1, y1), (x2, y2));
         }
