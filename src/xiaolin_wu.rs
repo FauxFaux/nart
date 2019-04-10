@@ -41,9 +41,9 @@ impl XiaolinWu {
         Self {
             steep,
             gradient,
-            x: usize(start.0.round()).unwrap(),
+            x: usize(start.0.round()).unwrap_or(0),
             y: start.1,
-            end_x: usize(end.0.round()).unwrap(),
+            end_x: usize(end.0.round()).unwrap_or(0),
             lower: false,
         }
     }
@@ -59,7 +59,7 @@ impl Iterator for XiaolinWu {
             let fpart = self.y - self.y.floor();
 
             // Calculate the integer value of y
-            let mut y = usize(self.y).unwrap();
+            let mut y = usize(self.y).unwrap_or(0);
             if self.lower {
                 y += 1;
             }
