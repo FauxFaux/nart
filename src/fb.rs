@@ -129,10 +129,8 @@ impl<'b> Buffer<'b> {
 
     pub fn draw_line(&mut self, (x1, y1): (usize, usize), (x2, y2): (usize, usize)) {
         use crate::xiaolin_wu::XiaolinWu as Alg;
-        let draw: Alg<f32, isize> = Alg::new((x1 as f32, y1 as f32), (x2 as f32, y2 as f32));
+        let draw: Alg = Alg::new((x1 as f32, y1 as f32), (x2 as f32, y2 as f32));
         for ((x, y), value) in draw {
-            let x = usize(x).unwrap();
-            let y = usize(y).unwrap();
             if x >= self.width || y >= self.height {
                 // TODO: https://github.com/expenses/line_drawing/issues/8
                 continue;

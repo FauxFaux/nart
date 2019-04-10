@@ -1,11 +1,8 @@
 use std::mem::swap;
 
-use num_traits::Float;
-use num_traits::NumAssignOps;
-use num_traits::NumCast;
-use num_traits::Signed;
+use cast::usize;
 
-type Point<T> = (T, T);
+type Point = (f32, f32);
 
 /// An implementation of [Xiaolin Wu's line algorithm].
 ///
@@ -14,36 +11,19 @@ type Point<T> = (T, T);
 ///
 /// Note that due to the implementation, the returned line will always go from left to right.
 ///
-/// Example:
-///
-/// ```ignore
-/// extern crate line_drawing;
-/// use line_drawing::XiaolinWu;
-///
-/// fn main() {
-///     for ((x, y), value) in XiaolinWu::<f32, i8>::new((0.0, 0.0), (3.0, 6.0)) {
-///         print!("(({}, {}), {}), ", x, y, value);
-///     }
-/// }
-/// ```
-///
-/// ```text
-/// ((0, 0), 0.5), ((0, 1), 0.5), ((1, 1), 0.5), ((1, 2), 1), ((1, 3), 0.5), ((2, 3), 0.5), ((2, 4), 1), ((2, 5), 0.5), ((3, 5), 0.5), ((3, 6), 0.5),
-/// ```
-///
 /// [Xiaolin Wu's line algorithm]: https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
-pub struct XiaolinWu<I, O> {
+pub struct XiaolinWu {
     steep: bool,
-    gradient: I,
-    x: O,
-    y: I,
-    end_x: O,
+    gradient: f32,
+    x: usize,
+    y: f32,
+    end_x: usize,
     lower: bool,
 }
 
-impl<I: Float + NumAssignOps, O: Signed + Ord + Copy + NumCast + NumAssignOps> XiaolinWu<I, O> {
+impl XiaolinWu {
     #[inline]
-    pub fn new(mut start: Point<I>, mut end: Point<I>) -> Self {
+    pub fn new(mut start: Point, mut end: Point) -> Self {
         let steep = (end.1 - start.1).abs() > (end.0 - start.0).abs();
 
         if steep {
@@ -56,27 +36,21 @@ impl<I: Float + NumAssignOps, O: Signed + Ord + Copy + NumCast + NumAssignOps> X
         }
 
         let dx = end.0 - start.0;
-        let gradient = if dx.is_zero() {
-            I::one()
-        } else {
-            (end.1 - start.1) / dx
-        };
+        let gradient = if 0. == dx { 1. } else { (end.1 - start.1) / dx };
 
         Self {
             steep,
             gradient,
-            x: O::from(start.0.round()).unwrap(),
+            x: usize(start.0.round()).unwrap(),
             y: start.1,
-            end_x: O::from(end.0.round()).unwrap(),
+            end_x: usize(end.0.round()).unwrap(),
             lower: false,
         }
     }
 }
 
-impl<I: Float + NumAssignOps, O: Signed + Ord + Copy + NumCast + NumAssignOps> Iterator
-    for XiaolinWu<I, O>
-{
-    type Item = (Point<O>, I);
+impl Iterator for XiaolinWu {
+    type Item = ((usize, usize), f32);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -85,9 +59,9 @@ impl<I: Float + NumAssignOps, O: Signed + Ord + Copy + NumCast + NumAssignOps> I
             let fpart = self.y - self.y.floor();
 
             // Calculate the integer value of y
-            let mut y = O::from(self.y).unwrap();
+            let mut y = usize(self.y).unwrap();
             if self.lower {
-                y += O::one();
+                y += 1;
             }
 
             // Get the point
@@ -96,21 +70,21 @@ impl<I: Float + NumAssignOps, O: Signed + Ord + Copy + NumCast + NumAssignOps> I
             if self.lower {
                 // Return the lower point
                 self.lower = false;
-                self.x += O::one();
+                self.x += 1;
                 self.y += self.gradient;
                 Some((point, fpart))
             } else {
-                if fpart > I::zero() {
+                if fpart > 0. {
                     // Set to return the lower point if the fractional part is > 0
                     self.lower = true;
                 } else {
                     // Otherwise move on
-                    self.x += O::one();
+                    self.x += 1;
                     self.y += self.gradient;
                 }
 
-                // Return the remainer of the fractional part
-                Some((point, I::one() - fpart))
+                // Return the remainder of the fractional part
+                Some((point, 1. - fpart))
             }
         } else {
             None
