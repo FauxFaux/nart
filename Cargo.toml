@@ -23,8 +23,7 @@ rev = "2b8094cc6ce7fefeb322a8b4df09e0c978efd5e2"
 [dependencies.png]
 # avoiding encoder
 default-features = false
-# 0.14 breaks default-features = false, fixed when 0.14.1 gets released
-version = "0.13"
+version = "0.14.1"
 
 [dev-dependencies]
 rand_core = "0.4"
