@@ -1,6 +1,5 @@
+use std::convert::TryFrom;
 use std::mem::swap;
-
-use cast::usize;
 
 type Point = (f32, f32);
 
@@ -41,9 +40,9 @@ impl XiaolinWu {
         Self {
             steep,
             gradient,
-            x: usize(start.0.round()).unwrap_or(0),
+            x: usize::try_from(start.0.round() as i64).unwrap_or(0),
             y: start.1,
-            end_x: usize(end.0.round()).unwrap_or(0),
+            end_x: usize::try_from(end.0.round() as i64).unwrap_or(0),
             lower: false,
         }
     }
@@ -59,7 +58,7 @@ impl Iterator for XiaolinWu {
             let fpart = self.y - self.y.floor();
 
             // Calculate the integer value of y
-            let mut y = usize(self.y).unwrap_or(0);
+            let mut y = usize::try_from(self.y as i64).unwrap_or(0);
             if self.lower {
                 y += 1;
             }

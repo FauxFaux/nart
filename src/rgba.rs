@@ -1,12 +1,12 @@
-use cast::u32;
-
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Rgba(u32);
 
 impl Rgba {
     pub fn from_u8s(r: u8, g: u8, b: u8, a: u8) -> Rgba {
-        Rgba((u32(r) << 0) + (u32(g) << 8) + (u32(b) << 16) + (u32(a) << 24))
+        Rgba(
+            (u32::from(r) << 0) + (u32::from(g) << 8) + (u32::from(b) << 16) + (u32::from(a) << 24),
+        )
     }
 
     pub fn from_packed(val: u32) -> Rgba {

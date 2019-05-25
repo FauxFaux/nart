@@ -1,4 +1,5 @@
-use cast::usize;
+use std::convert::TryFrom;
+
 use failure::Error;
 use minifb::Key;
 use nart::fb::Nart;
@@ -35,9 +36,9 @@ fn main() -> Result<(), Error> {
             let x = usize(rng.next_u32()) % (width - image.width);
             let y = usize(rng.next_u32()) % (height - image.height);
 
-            buffer.image_one_minus_src(&image, (usize(x), usize(y)));
+            buffer.image_one_minus_src(&image, (x, y));
 
-            let x = usize(rng.next_u32()) % (width - usize(text.width().ceil())?);
+            let x = usize(rng.next_u32()) % (width - usize(text.width().ceil() as u32));
             let y = usize(rng.next_u32()) % (height - 32);
 
             buffer.draw_text(&text, (x, y))?;
@@ -55,6 +56,10 @@ fn main() -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+fn usize(val: u32) -> usize {
+    usize::try_from(val).expect("u32 -> usize")
 }
 
 struct ByteRand {

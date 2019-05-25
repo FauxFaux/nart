@@ -1,17 +1,17 @@
+use std::convert::TryFrom;
+use std::convert::TryInto;
+use std::intrinsics::transmute;
 use std::mem;
 use std::slice;
 use std::thread;
 use std::time;
 
-use cast::u32;
-use cast::usize;
 use failure::Error;
 use minifb::Window;
 use minifb::WindowOptions;
 
 use crate::img::RgbaImage;
 use crate::rgba::Rgba;
-use std::intrinsics::transmute;
 
 #[derive(Clone)]
 pub struct NartOptions {
@@ -48,7 +48,7 @@ impl Nart {
             buffer: vec![Rgba::black(); options.width * options.height],
             last_size: (options.width, options.height),
             last_frame: time::Instant::now(),
-            frame_ms: u32(1000 / options.frame_cap).expect("max 1000"),
+            frame_ms: (1000 / options.frame_cap).try_into().expect("max 1000"),
         })
     }
 
@@ -86,7 +86,7 @@ impl Nart {
         let rgbas: &[Rgba] = self.buffer.as_slice();
         assert_eq!(mem::size_of::<Rgba>(), mem::size_of::<u32>());
         let u32s: &[u32] = unsafe {
-            // safe as Rgba is #[repr(transpartent)]. Not actually FFI, so
+            // safe as Rgba is #[repr(transparent)]. Not actually FFI, so
             // probably safe even with #[repr(C)], and currently works even
             // with default repr (as there is no overhead)
             let u32s = rgbas.as_ptr() as *const u32;
@@ -154,8 +154,12 @@ impl<'b> Buffer<'b> {
                 if v < 0.05 {
                     return;
                 }
-                let x = left + usize(bb.min.x).expect("TODO?") + usize(x);
-                let y = top + usize(bb.min.y).expect("TODO?") + usize(y);
+                let x = left
+                    + usize::try_from(bb.min.x).expect("TODO?")
+                    + usize::try_from(x).expect("x < usize");
+                let y = top
+                    + usize::try_from(bb.min.y).expect("TODO?")
+                    + usize::try_from(y).expect("y < usize");
                 let v = (v * 255.).floor() as u8;
                 self.set((x, y), Rgba::black());
             });

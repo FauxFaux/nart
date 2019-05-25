@@ -1,12 +1,12 @@
+use std::convert::TryFrom;
 use std::io;
 
-use cast::u64;
-use cast::usize;
 use failure::ensure;
 use failure::err_msg;
 use failure::Error;
 
 use crate::rgba::Rgba;
+use std::convert::TryInto;
 
 pub struct RgbaImage {
     pub width: usize,
@@ -45,7 +45,7 @@ pub fn load_png(png: &[u8]) -> Result<RgbaImage, Error> {
     let bytes_per_pixel = output.color_type.samples();
 
     ensure!(
-        bytes_per_pixel * usize(output.width) == output.line_size,
+        bytes_per_pixel * usize::try_from(output.width).expect("width < usize") == output.line_size,
         "line_width miscalculated: {} * {} != {}",
         bytes_per_pixel,
         output.width,
@@ -54,16 +54,15 @@ pub fn load_png(png: &[u8]) -> Result<RgbaImage, Error> {
 
     Ok(RgbaImage {
         data: bytes_to_rgba(bytes),
-        width: usize(output.width),
-        height: usize(output.height),
+        width: output.width.try_into().expect("width < usize"),
+        height: output.height.try_into().expect("width < usize"),
     })
 }
 
 fn bytes_to_rgba(bytes: Vec<u8>) -> Vec<Rgba> {
-    use byteorder::ByteOrder;
     // I really have no idea how endian works here
     bytes
         .chunks(4)
-        .map(|v| Rgba::from_packed(byteorder::NativeEndian::read_u32(v)))
+        .map(|v| Rgba::from_packed(u32::from_ne_bytes(v.try_into().expect("chunked"))))
         .collect()
 }
