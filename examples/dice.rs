@@ -5,8 +5,7 @@ use minifb::Key;
 use nart::fb::Nart;
 use nart::fb::NartOptions;
 use nart::rgba::Rgba;
-use rand_core::RngCore;
-use rand_core::SeedableRng;
+use rand::RngCore;
 
 fn main() -> Result<(), Error> {
     let image = nart::img::load_png(include_bytes!("transparent-dice.png"))?;
@@ -63,14 +62,14 @@ fn usize(val: u32) -> usize {
 }
 
 struct ByteRand {
-    rng: rand_xoshiro::Xoshiro256Plus,
+    rng: rand::prelude::ThreadRng,
     curr: u64,
     bip: u8,
 }
 
 impl ByteRand {
     fn new() -> ByteRand {
-        let mut rng = rand_xoshiro::Xoshiro256Plus::seed_from_u64(0);
+        let mut rng = rand::thread_rng();
         ByteRand {
             curr: rng.next_u64(),
             bip: 0,
