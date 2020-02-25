@@ -5,6 +5,7 @@ authors = ["Chris West (Faux) <git@goeswhere.com>"]
 edition = "2018"
 
 [dependencies]
+minifb = "0.15"
 more-asserts = "0.2"
 rusttype = "0.8"
 
@@ -13,15 +14,10 @@ default-features = false
 features = ["std"]
 version = "0.1"
 
-[dependencies.minifb]
-version = "0.13"
-#git = "https://github.com/emoon/rust_minifb"
-#rev = "2b8094cc6ce7fefeb322a8b4df09e0c978efd5e2"
-
 [dependencies.png]
 # avoiding encoder
 default-features = false
-version = "0.14.1"
+version = "0.15"
 
 [dev-dependencies]
 rand = "0.7"

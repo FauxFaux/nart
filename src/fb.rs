@@ -38,13 +38,10 @@ pub struct Buffer<'b> {
 
 impl Nart {
     pub fn new(options: &NartOptions) -> Result<Nart, Error> {
+        let mut opts = WindowOptions::default();
+        opts.resize = true;
         Ok(Nart {
-            win: Window::new(
-                &options.name,
-                options.width,
-                options.height,
-                WindowOptions::default(),
-            )?,
+            win: Window::new(&options.name, options.width, options.height, opts)?,
             buffer: vec![Rgba::black(); options.width * options.height],
             last_size: (options.width, options.height),
             last_frame: time::Instant::now(),
@@ -59,9 +56,11 @@ impl Nart {
             self.buffer.resize(new_size.0 * new_size.1, Rgba::black());
         }
 
+        let (width, height) = self.last_size;
+
         Buffer {
-            width: self.last_size.0,
-            height: self.last_size.1,
+            width,
+            height,
             inner: &mut self.buffer,
         }
     }
@@ -92,7 +91,11 @@ impl Nart {
             let u32s = rgbas.as_ptr() as *const u32;
             ::std::slice::from_raw_parts(u32s, rgbas.len())
         };
-        self.win.update_with_buffer(u32s)?;
+        let (width, height) = self.last_size;
+
+        assert_eq!(width * height, u32s.len());
+
+        self.win.update_with_buffer(u32s, width, height)?;
         Ok(())
     }
 }
